@@ -28,8 +28,9 @@ class Marksheet:
 			return "AB"
 		elif not(str(marks).isnumeric()) or str(marks).isalpha():
 			maths = self.auth_only_theory_sub(input(f"Enter valid Marks for subject {subject}:  "), subject)
-		elif int(marks) <= 100 and int(marks) >= 0:
-			return int(marks)
+		marks = int(marks)		
+		if int(marks) <= 100 and int(marks) >= 0:
+			return (marks := int(marks))
 		else:
 			print(f"Marks of {subject} must be less than equal to 100")
 			maths = self.auth_only_theory_sub(input(f"Enter marks for subject {subject}:  "), subject)
@@ -38,12 +39,12 @@ class Marksheet:
 	def auth_practical_subject(self, marks, subject):
 		if not(str(marks).isnumeric()) or str(marks).isalpha():
 			print(f"Enter valid marks for subject {subject}")
-			marks = self.auth_practical_subject(input(f"Enter marks for subject {subject}: "), subject)	
-		if str(marks).isnumeric() or (int(marks) <= 20 and int(marks) >= 0):
-			return int(marks)
+			return self.auth_practical_subject(input(f"Enter marks for subject {subject}: "), subject)	
+		elif str(marks).isnumeric() and (int(marks) <= 20 and int(marks) >= 0):
+			return (marks := int(marks))
 		else:
 			print(f"Marks of {subject} must be less than equal to 20")
-			marks = self.auth_practical_subject(input(f"Enter marks for subject {subject}: "), subject)
+			return self.auth_practical_subject(input(f"Enter marks for subject {subject}: "), subject)
 
 	# Authenticate marks of subjects that also have practical Exams
 	def auth_sub_with_pr(self, marks, subject):
@@ -52,13 +53,14 @@ class Marksheet:
 			self.failed_subjects.append(subject)
 			return "AB"
 		elif not(str(marks).isnumeric()) or str(marks).isalpha():
-			marks = self.auth_sub_with_pr(input(f"Enter valid marks for subject {subject}: "),subject)			
-		elif (marks := int(marks)) <= 80 and int(marks) >= 0:
-			print(type(marks), marks)
-			return int(marks)
+			return self.auth_sub_with_pr(input(f"Enter valid marks for subject {subject}: "),subject)	
+
+		marks = int(marks)		
+		if str(marks).isnumeric() and (int(marks)) <= 80 and int(marks) >= 0:
+			return (marks := int(marks))
 		else:
 			print(f" Marks of {subject} must be less than equal to 80")
-			marks = self.auth_sub_with_pr(input(f"Enter marks for subject {subject}: "),subject)
+			return self.auth_sub_with_pr(input(f"Enter marks for subject {subject}: "),subject)
 
 	# Authenticate Roll Number
 	def auth_roll_num(self, r_number):
@@ -66,7 +68,7 @@ class Marksheet:
 			return r_number
 		else:
 			print("Enter a valid Roll Number")
-			r_number = self.auth_roll_num(input("Enter Roll Number: "))
+			return self.auth_roll_num(input("Enter Roll Number: "))
 
 	# Constructor method 	
 	def __init__(self):	
@@ -75,7 +77,7 @@ class Marksheet:
 		self.roll_number = self.auth_roll_num(input("Enter roll number: "))
 
 		# Only THeory Subjects	
-		self.physics = self.auth_sub_with_pr(input("Enter marks for subject Physics Enter \"AB\" id Absent: "),subject = "Physics")
+		self.physics = self.auth_sub_with_pr(input("Enter marks for subject Physics Enter 'AB' id Absent: "),subject = "Physics")
 		self.chemistry = self.auth_sub_with_pr(input("Enter marks for subject Chemistry Enter \"AB\" id Absent: "), subject = "Chemistry")
 
 		# Theory Subject That Have Practical Exams
@@ -136,11 +138,9 @@ class Marksheet:
 		
 		# For Subjct Maths
 		print(f"{'|':>15}",f"{'041 |':^8}",f"{"MATHEMATICS":^30}","|",f"{str(self.maths):^8}","|",f"{'XX':^8}","|",f"{str(self.maths):^8}","|" ,end ="")
-		print(f"{(str(p.number_to_words(89)).upper()):^15}" , "|" , f"{self.gen_only_th_grade(self.maths, "Mathematics"):^17}" , "|")
+		print(f"{(str(p.number_to_words(89)).upper()):^15}" , "|" , f"{str(self.gen_only_th_grade(self.maths, "Mathematics")):^17}" , "|")
 
 		# For Subject Physics
-		print(type(self.physics_pr), self.physics_pr)
-		print(type(self.physics), self.physics)
 		self.physics_total = (self.physics + self.physics_pr) if(str(self.physics).lower()!="ab") else self.physics_pr
 		print(f"{'|':>15}",f"{'042 |':^8}",f"{"PHYSICS":^30}","|",f"{str(self.physics):^8}","|",f"{str(self.physics_pr):^8}","|",f"{str(self.physics_total):^8}","|" ,end ="")
 		print(f"{(str(p.number_to_words(self.physics_total)).upper()):^15}" , "|" , f"{self.gen_only_th_grade(self.physics_total, "Physics"):^17}" , "|")
