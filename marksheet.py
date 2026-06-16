@@ -253,12 +253,10 @@ Enter Done if completed everything """)
 				else:
 					print("Invalid Choice: ")
 					self.update_marksheet(roll_number)
-
 		else:
 			print("Invalid choice: ")
 			self.update_marksheet()
 		self.__init__()
-	# String with School name
 
 	# List Of Failed Subjects
 
@@ -320,9 +318,8 @@ Enter Done if completed everything """)
 
 	# Check whether any sumbers present in the name or not
 	def check_name(self, name):
-		special_letters = ('#', "@", "!", "_", "$", "%", "&", "," "^", "*", "(", ")", "{" , "}", "\\" , "|", "?", ":", ";", ">", "<", "/")
-		for index, letter in enumerate(special_letters):
-			if (str(index) in name) or (letter in name):
+		for i in name.split():
+			if not(str(i).isalpha()):
 				return self.check_name(input("Please don't use special characters and numbers in name: "))
 		else:
 			return name
@@ -458,7 +455,7 @@ Enter Done if completed everything """)
 
 
 		# PRinting Result
-		print(f"{'|':>11}{'RESULT: ':>59}", f"{'PASS' if len(self.failed_subjects)<=2 else "FAIL"}{'|':>55}")
+		print(f"{'|':>11}{'RESULT: ':>59}",f"{'PASS' if len(self.failed_subjects)==0 else 'SUPPLYMENTARY' if 2>=len(self.failed_subjects)>0 else "FAIL" :<58}{'|'}")
 		print(f"{'|':>11}{'|':>119}")
 		print(f"{'|':>11}{'|':>119}")
 		print(f"{'|':>11}{ '-'*118:>112}{'|'}")
