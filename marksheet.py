@@ -32,10 +32,11 @@ class Marksheet:
 
 	def __init__(self):
 		self.user_choice = input("""
-		Enter 1 if you want to add marksheet \n 
-		Enter 2 if you want to show marksheeet using roll number \n
-		Enter 3 to delete marksheet using roll number: 
-		""")
+Enter 1 if you want to add marksheet 
+Enter 2 if you want to show marksheeet using roll number 
+Enter 3 to delete marksheet using roll number
+Enter 4 to update information from existing marksheet using roll number: 
+Enter Done if completed everything """)
 
 		if self.user_choice == "1":
 			self.add_marksheet()
@@ -49,6 +50,25 @@ class Marksheet:
 		elif self.user_choice == "3":
 			roll_number = input("Enter Roll number to delete marksheet: ")
 			self.delete_marksheet(roll_number)
+		elif self.user_choice == "4":
+			roll_number = self.check_roll_num(input("Enter roll number to update marksheet: "))
+			self.update_marksheet(roll_number)
+		elif self.user_choice.lower() == "done":
+			pass
+		else:
+			print("Invalid choice")
+			self.__init__()
+
+	def check_roll_num(self, r_number):
+		if r_number.isnumeric() and len(r_number) == 7:
+			return r_number
+		else:
+			if not(r_number.isnumeric()):
+				return self.check_roll_num(input("Please enter only numbers don't use special letters and spellings: "))
+			elif len(r_number) != 7 :
+				return self.check_roll_num(input("Length of roll number must be 7: "))
+			else:
+				return self.check_roll_num(input("Please reenter Roll number: "))
 
 	def add_marksheet(self):
 		add_query = """
@@ -74,7 +94,7 @@ class Marksheet:
 		data = self.cursor.fetchall()
 
 		if len(data)==0 :
-			self.show_marksheet(input("Marksheet for this roll number is not exist plese check and reenter roll number:"))
+			self.show_marksheet(input("Marksheet for this roll number is not exist please check and re enter roll number: "))
 		else:
 			data = data[0]
 			self.roll_number = str(data[0])
@@ -107,9 +127,137 @@ class Marksheet:
 				print("Marksheet Deleted successfully: ")
 			else:
 				self.__init__()
+		else:
+			self.delete_marksheet(input("Marksheet for this roll number is not exist please check and Re enter roll number:"))
 
-	
+	def update_marksheet(self, roll_number):
+		
+		select_query =f"""SELECT * FROM marksheet WHERE roll_number = {roll_number};"""
+		self.cursor.execute(select_query) 
+		data = self.cursor.fetchall()
+		if len(data) !=0:
+			data = data[0]
+		else:
+			print("Marksheet for this roll number is not exisx: ")
+			self.update_marksheet(roll_number)
 
+		user_choice = input("What do you want to update personal detailes or marks if personal detailes enter 0 else enter 1: ")
+		if int(user_choice) == 0:
+			while True:
+				choice = input("Enter number to update detailes like  1 for name, 2 for father_name, 3 for mother_name, 4 for date of birth: ")
+				if choice == '1':
+					name = self.check_name(input(f"Enter name to update your current name present in marksheet is {data[4]}: "))
+					update_query = "UPDATE marksheet SET name = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (name, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == '2':
+					name = self.check_name(input(f"Enter father name to update current name present in marksheet is {data[5]}: "))
+					update_query = "UPDATE marksheet SET father_name = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (name, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == '3':
+					name = self.check_name(input(f"Enter mother name to update current name present in marksheet is {data[6]}: "))
+					update_query = "UPDATE marksheet SET mother_name = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (name, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == '4':
+					dob = self.check_name(input(f"Enter new date of birth to update your current date of birth present in marksheet is {data[7]}: "))
+					update_query = "UPDATE marksheet SET dob = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (dob, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				else:
+					print("Invalid Choice please re enter: ")
+					self.update_marksheet(roll_number)
+		elif int(user_choice) == 1:
+			while True:
+				choice = input("Enter a number betwin 1 to 7 to update marks like Maths, Physics, Chemistry, Hindi, English, Physics Practical, Chemistry Practical: ")
+				if choice == "1":
+					maths =  self.auth_only_theory_sub(input("Enter marks for subject Maths Enter \"AB\" if Absent to upfdate:  "), subject = "Maths")
+					update_query = "UPDATE marksheet SET maths = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (marths, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "2":
+					physics = self.auth_sub_with_pr(input("Enter marks for subject Physics Enter 'AB' if Absent to update: "),subject = "Physics")
+					update_query = "UPDATE marksheet SET physics = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (physics, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "3":
+					chemistry = self.auth_sub_with_pr(input("Enter marks for subject Chemistry Enter \"AB\" id Absent to update: "), subject = "Chemistry")
+					update_query = "UPDATE marksheet SET chemistry = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (chemistry, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "4":
+					hindi = self.auth_only_theory_sub(input("Enter marks for subject Hindi Enter \"AB\" if Absent to update: "), subject = "Hindi")
+					update_query = "UPDATE marksheet SET hindi = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (hindi, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "5":
+					english = self.auth_only_theory_sub(input("Enter marks for subject English Enter \"AB\" id Absent to update: "), subject = "English")
+					update_query = "UPDATE marksheet SET english = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (english, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "6":
+					physics_pr = self.auth_practical_subject(input("Enter marks for subject Physics Practicalto update: "), subject = "Physics Practical")
+					update_query = "UPDATE marksheet SET physics_practical = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query, (physics_pr, roll_number))
+					self.conn.commit()
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				elif choice == "7":
+					chemistry_pr = self.auth_practical_subject(input("Enter marks for subject Chemistry Practical to update: "), subject = "Chemistry Practical")
+					update_query = "UPDATE marksheet SET chemistry_practical = %s WHERE roll_number = %s"
+					self.cursor.execute(update_query)
+					self.conn.commit(roll_number)
+					print("Data updated successfully ")
+					continue_update = input("Do you want to update more info if yes enter 'yes' else enter 'no': ")
+					if continue_update.lower() == "no":
+						break
+				else:
+					print("Invalid Choice: ")
+					self.update_marksheet(roll_number)
+
+		else:
+			print("Invalid choice: ")
+			self.update_marksheet()
+		self.__init__()
 	# String with School name
 
 	# List Of Failed Subjects
@@ -162,7 +310,7 @@ class Marksheet:
 		elif r_number.isnumeric() and len(r_number) == 7:
 			return r_number
 		else:
-			if not(r_number.isalpha()):
+			if not(r_number.isnumeric()):
 				return self.auth_roll_num(input("Please enter only numbers don't use special letters and spellings: "))
 			elif len(r_number) != 7 :
 				return self.auth_roll_num(input("Length of roll number must be 7: "))
