@@ -1,15 +1,114 @@
 import random
 import inflect
+from datetime import datetime
+import psycopg2
 class Marksheet:
 
-	# Generating Random Scholar number
-	scholar_number = random.randrange(1111111, 9999999)
+	conn = psycopg2.connect(database="result", user="aakash", password="aakash123")
+	cursor = conn.cursor()
 
-	# String with scholar number and state board name correctly formatted
-	state_board = f"{'|':>11}{'S. No.':>9} {scholar_number:<32}{'CENTRAL BOARD OF SECONDARY EDUCATION'} {'|':>40}"
+	# Create Database Table if not exist
+	table_auery = """
+	CREATE TABLE IF NOT EXISTS marksheet(
+		roll_number INT PRIMARY KEY,
+		sch_number INT NOT NULL, 
+		sch INT NOT NULL,
+		school_name VARCHAR(150) NOT NULL,
+		name VARCHAR(100) NOT NULL, 
+		father_name VARCHAR(100) NOT NULL,
+		mother_name VARCHAR(100) NOT NULL,
+		dob DATE NOT NULL,
+		maths VARCHAR(10) NOT NULL,
+		physics VARCHAR(10) NOT NULL,
+		chemistry VARCHAR(10) NOT NULL,
+		hindi VARCHAR(10) NOT NULL,
+		english VARCHAR(10) NOT NULL,
+		physics_practical VARCHAR(10) NOT NULL,
+		chemistry_practical VARCHAR(10) NOT NULL
+	);
+	"""
+	cursor.execute(table_auery)
+	conn.commit()
 
-	# String with Exam Type 
-	exam_type = f"{'|':>11}{'ALL INDIA':>43} {'SENIOR SCHOOL CERTIFICATE EXAMINATION,2026'} {'SCH-' + str(random.randrange(111111111, 999999999)) :>28} {'|':>3}"
+	def __init__(self):
+		self.user_choice = input("""
+		Enter 1 if you want to add marksheet \n 
+		Enter 2 if you want to show marksheeet using roll number \n
+		Enter 3 to delete marksheet using roll number: 
+		""")
+
+		if self.user_choice == "1":
+			self.add_marksheet()
+			select_query =f"""SELECT * FROM marksheet WHERE roll_number = {self.roll_number};"""
+			self.cursor.execute(select_query) 
+			data = self.cursor.fetchall() 
+			self.show_marksheet(self.roll_number)
+		elif self.user_choice == "2":
+			roll_number = input("Enter Roll number to show marksheet: ")
+			self.show_marksheet(roll_number)
+		elif self.user_choice == "3":
+			roll_number = input("Enter Roll number to delete marksheet: ")
+			self.delete_marksheet(roll_number)
+
+	def add_marksheet(self):
+		add_query = """
+		INSERT INTO marksheet(roll_number, sch_number, sch, school_name, name, father_name, mother_name, dob,
+			maths, physics, chemistry, hindi, english, physics_practical, chemistry_practical)
+		VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+		"""
+
+		self.enter_data()
+		values = (self.roll_number, self.scholar_number, self.sch, 
+			self.school_name, self.name, self.father_name, 
+			self.mother_name, self.dob,self.maths, self.physics, self.chemistry,
+			self.hindi, self.english, self.physics_pr, self.chemistry_pr
+		)
+
+		self.cursor.execute(add_query, values)
+		self.conn.commit() 
+
+
+	def show_marksheet(self, roll_number):
+		select_query =f"""SELECT * FROM marksheet WHERE roll_number = {roll_number};"""
+		self.cursor.execute(select_query) 
+		data = self.cursor.fetchall()
+
+		if len(data)==0 :
+			self.show_marksheet(input("Marksheet for this roll number is not exist plese check and reenter roll number:"))
+		else:
+			data = data[0]
+			self.roll_number = str(data[0])
+			self.scholar_number = str(data[1]) 
+			self.sch = str(data[2]) 
+			self.school_name = data[3]
+			self.name = data[4] 
+			self.father_name = data[5] 
+			self.mother_name = data[6]
+			self.dob = data[7] 
+			self.maths = int(data[8]) if data[8].lower() != "ab" else "AB" 
+			self.physics = int(data[9]) if data[9].lower() != "ab" else "AB" 
+			self.chemistry = int(data[10]) if data[10].lower() != "ab" else "AB" 
+			self.hindi = int(data[11]) if data[11].lower() != "ab" else "AB"  
+			self.english = int(data[12]) if data[12].lower() != "ab" else "AB" 
+			self.physics_pr = int(data[13]) if data[13].lower() != "ab" else "AB" 
+			self.chemistry_pr = int(data[14]) if data[14].lower() != "ab" else "AB" 
+			self.markshit_top_content()
+
+	def delete_marksheet(self, roll_number):
+		select_query =f"""SELECT * FROM marksheet WHERE roll_number = {roll_number};"""
+		self.cursor.execute(select_query) 
+		data = self.cursor.fetchall()
+		if len(data) != 0 :
+			recheck = input("Do you really want to delete the marksheet if yes enter 1 else enter 0: ")
+			if int(recheck.lower()):
+				delete_query = f"DELETE FROM marksheet WHERE roll_number = {roll_number}"
+				self.cursor.execute(delete_query)
+				self.conn.commit()
+				print("Marksheet Deleted successfully: ")
+			else:
+				self.__init__()
+
+	
 
 	# String with School name
 
@@ -55,13 +154,20 @@ class Marksheet:
 
 	# Authenticate Roll Number
 	def auth_roll_num(self, r_number):
-		if r_number.isnumeric() and len(r_number) == 7:
+		select_query =f"""SELECT * FROM marksheet WHERE roll_number = {r_number};"""
+		self.cursor.execute(select_query) 
+		data = self.cursor.fetchall() 
+		if len(data) != 0:
+			return self.auth_roll_num(input("Roll Number already exists please try diffrent: "))
+		elif r_number.isnumeric() and len(r_number) == 7:
 			return r_number
 		else:
-			if len(r_number) != 7:
+			if not(r_number.isalpha()):
+				return self.auth_roll_num(input("Please enter only numbers don't use special letters and spellings: "))
+			elif len(r_number) != 7 :
 				return self.auth_roll_num(input("Length of roll number must be 7: "))
 			else:
-				return self.auth_roll_num(input("Please enter only numbers don't use special letters and spellings: "))
+				return self.auth_roll_num(input("Please reenter Roll number: "))
 
 
 	# Check whether any sumbers present in the name or not
@@ -73,14 +179,36 @@ class Marksheet:
 		else:
 			return name
 
+	def auth_dob(self, dob):
+		day, month, year = dob.split('-')
+		if len(day) == 2:
+			if len(month) == 2:
+				if len(year) == 2 or len(year) ==4:
+					try:
+						d =  datetime.strptime(dob, "%d-%m-%Y")
+						return str(d).split(" ")[0]
+					except Exception as e:
+						return self.auth_dob(input("Enter date of birth in correct formate: "))
+				else:
+					return self.auth_dob(input("Enter date of birth in correct formate: "))
+			else:
+				return self.auth_dob(input("Enter date of birth in correct formate: "))
+		else:
+			return self.auth_dob(input("Enter date of birth in correct formate: "))
+
 	# Constructor method 	
-	def __init__(self):	
+	def enter_data(self):	
 		# User Name
+		# Autogenerate scholar number and sch number
+		self.scholar_number = random.randrange(1111111, 9999999)
+		self.sch = str(random.randrange(111111111, 999999999)) 
+
 		self.name = self.check_name(input("Enter Name: "))
 		self.roll_number = self.auth_roll_num(input("Enter roll number: "))
 		self.school_name = self.check_name(input("Enter school name: "))
 		self.father_name = self.check_name(input("Enter father name: "))
 		self.mother_name = self.check_name(input("Enter mother name:"))
+		self.dob = self.auth_dob(input("Enter date of birth, formate must be 'dd-mm-yyyy': "))
 
 		# Only THeory Subjects	
 		self.physics = self.auth_sub_with_pr(input("Enter marks for subject Physics Enter 'AB' if Absent: "),subject = "Physics")
@@ -118,6 +246,12 @@ class Marksheet:
 
 	def markshit_top_content(self):
 		self.name_string = f"{'|':>11}{'Name:':>8} {self.name:<85} Roll Number: {self.roll_number} {'|':>3}"
+		# String with scholar number and state board name correctly formatted
+		self.state_board = f"{'|':>11}{'S. No.':>9} {self.scholar_number:<32}{'CENTRAL BOARD OF SECONDARY EDUCATION'} {'|':>40}"
+
+		# String with Exam Type 
+		self.exam_type = f"{'|':>11}{'ALL INDIA':>43} {'SENIOR SCHOOL CERTIFICATE EXAMINATION,2026'} {'SCH-' + self.sch :>28} {'|':>3}"
+
 		print("-"*150 + "\n")
 		print(f"{ '-'*120:>130}")
 		print(self.state_board)
@@ -129,6 +263,7 @@ class Marksheet:
 		print(self.name_string)
 		print(f"{'|':>11}{'Father name: ':>16}{self.father_name:<85}{'|':>18}")
 		print(f"{'|':>11}{'Mother name: ':>16}{self.mother_name:<85}{'|':>18}")
+		print(f"{'|':>11}{'Date of birth: ':>18}{str(self.dob):<85}{'|':>16}")
 		print(f"{'|':>11}{ '-'*113:>116}{'|':>3}")
 
 		# Printing Headings
@@ -200,5 +335,4 @@ class Marksheet:
 
 		
 m1 = Marksheet()
-m1.markshit_top_content()
 
